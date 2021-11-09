@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel= "stylesheet" type= "text/css" href= "{{ url_for('static',filename='styles/main.css') }}">
+    <title>QEP Interface</title>
+</head>
+<body class="outerContainer">
+    <div class="header">
+        <h1>Query Execution Plan</h1>
+    </div>
+    <div>
+        <div class="panelContainer">
+            <form method="POST">
+<!--                <input type="text" list="schemas" class="textArea" size="2" id="selectSchema" name="selectSchema">-->
+                    <select class="firstPanel" id="schemas" size="2">
+                        {% for item in schema %}
+                            <option>
+                                DB Schema: {{ item }}
+                            </option>
+                        {% endfor %}
+                    </select>
+<!--                </input>-->
+                <input class="textArea" style="margin-left:1%;" id="specifyQuery" name="specifyQuery" value={{ text }}></input>
+                <input class="textArea" style="margin-left:32%;" id="visualizeQEP" name="visualizeQEP" value="visualize QEP..."></input>
+                <br><br>
+                <input class="btn" type="submit">
+            </form>
+        </div>
+    </div>
+</body>
+</html>
