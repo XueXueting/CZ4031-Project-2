@@ -28,7 +28,7 @@ def connect():
         # databases = cur.fetchall()
         # print("Databases:", databases)
 
-        return cur
+        return
 
         cur.close()
 
@@ -49,11 +49,18 @@ def show_display():
 
 def process_query():
     cur = pool.getconn().cursor()
-    sql_query = "SELECT * FROM region, nation"
+    sql_query = "SELECT * " \
+                "FROM region, nation, supplier " \
+                # "WHERE " \
+                # "nation.n_nationkey > 10 " \
+                # "AND region.r_name = 'AFRICA' " \
+                # "AND nation.n_regionkey = region.r_regionkey " \
+                # "AND supplier.s_nationkey = nation.n_nationkey"
     cur.execute(cur.mogrify('explain ' + sql_query))
-    analyze_fetched = cur.fetchall()
-    print(analyze_fetched)
-
+    raw_qep = cur.fetchall()
+    processed_qep = pre.process_qep(raw_qep)
+    print(processed_qep['Join'])
+    print(processed_qep['Scan'])
 
 def main():
     connect()
