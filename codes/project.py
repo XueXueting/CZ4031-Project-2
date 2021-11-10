@@ -1,4 +1,8 @@
 import psycopg2
+import psycopg2.pool
+import preprocessing as pre
+
+pool = None
 
 
 def connect():
@@ -7,10 +11,12 @@ def connect():
         # testing connection on local databases, will need to try on remote database using ip address
         # for now, use your own postgresql password
         print('Connecting to database..')
-        conn = psycopg2.connect(host="localhost",
-                                database="TPC-H",
-                                user="postgres",
-                                password="password")
+        global pool
+        pool = psycopg2.pool.SimpleConnectionPool(1, 10, host="localhost",
+                                                  database="TPC-H",
+                                                  user="postgres",
+                                                  password="password")
+        conn = pool.getconn()
         cur = conn.cursor()
         print('PostgreSQL database version:')
         cur.execute('SELECT version()')
@@ -18,18 +24,11 @@ def connect():
         db_version = cur.fetchone()
         print(db_version)
 
-        sql_query = "SELECT * FROM region"
-        cur.execute(cur.mogrify('explain analyze ' + sql_query))
-        analyze_fetched = cur.fetchall()
-        print(analyze_fetched)
+        # cur.execute('SELECT datname FROM pg_database')
+        # databases = cur.fetchall()
+        # print("Databases:", databases)
 
-        cur.execute('SELECT datname FROM pg_database')
-        databases = cur.fetchall()
-        print("Databases:", databases)
-
-        cur.execute('SELECT schema_name FROM information_schema.schemata')
-        schemas = cur.fetchall()
-        print("Schemas:", schemas)
+        return cur
 
         cur.close()
 
@@ -41,4 +40,25 @@ def connect():
             print('Database connection closed.')
 
 
-connect()
+def show_display():
+    cur = pool.getconn().cursor()
+    cur.execute('SELECT schema_name FROM information_schema.schemata')
+    raw_schemas = cur.fetchall()
+    processed_schemas = pre.process_schemas(raw_schemas)
+
+
+def process_query():
+    cur = pool.getconn().cursor()
+    sql_query = "SELECT * FROM region, nation"
+    cur.execute(cur.mogrify('explain ' + sql_query))
+    analyze_fetched = cur.fetchall()
+    print(analyze_fetched)
+
+
+def main():
+    connect()
+    show_display()
+    process_query()
+
+
+main()
