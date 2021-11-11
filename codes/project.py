@@ -1,6 +1,8 @@
 import psycopg2
 import psycopg2.pool
 import preprocessing as pre
+import annotation as anno
+import interface
 
 pool = None
 
@@ -49,19 +51,24 @@ def show_display():
 
 def process_query():
     cur = pool.getconn().cursor()
-    sql_query = "SELECT * " \
-                "FROM region, nation, supplier " \
+    sql_query = "SELECT sum(s_acctbal) " \
+                "FROM REGION as R, region as re, nation as n, supplier as s " \
                 "WHERE " \
-                "nation.n_nationkey > 10 " \
-                "AND region.r_name = 'AFRICA' " \
-                "AND nation.n_regionkey = region.r_regionkey " \
-                "AND supplier.s_nationkey = nation.n_nationkey"
+                "n.n_nationkey > 10 " \
+                "AND n.n_regionkey = r.r_regionkey " \
+                "AND s.S_NATIONKEY = n.n_nationkey " \
+                "GROUP BY r.r_name " \
+
     cur.execute(cur.mogrify('explain ' + sql_query))
     raw_qep = cur.fetchall()
+
     processed_qep = pre.process_qep(raw_qep)
-    print(processed_qep['Join'])
-    print(processed_qep['Scan'])
+    annotations = anno.generate_annotations(sql_query, processed_qep)
+    print('Number of annotations:', len(annotations))
+    # interface.render_annotations(annotations)
+
     pre.create_graphical_qep(raw_qep)
+    # interface.render_graphical_qep()
 
 
 def main():

@@ -1,6 +1,6 @@
 import re
 import graphviz
-from anytree import Node
+from anytree import Node, RenderTree
 from anytree.exporter import UniqueDotExporter
 
 
@@ -25,11 +25,20 @@ def process_qep(raw_qep):
             continue
 
         if item_details.find('Join') != -1:
-            # item is a 'Join' process'
+            # item is some 'Join' process'
             substring_index = item_details.find('Join')
             join_type = item_details[:substring_index + len('Join')]
             join_condition = raw_qep[i + 1][0].split('Cond: ')[1]
             result_dict['Join'][join_condition] = join_type
+        elif item_details.find('Nested Loop') != -1:
+            # item is a 'Nested Loop Join' process
+            # find condition of nested loop join in next line
+            next_qep_item = raw_qep[i+1][0]
+            if next_qep_item.find('Join Filter') != -1:
+                join_condition = next_qep_item.split(': ')[1]
+                result_dict['Join'][join_condition] = 'Nested Loop Join'
+            else:
+                continue
         elif item_details.find('Scan') != -1:
             # item is a 'Scan' process
             item_details_list = re.split(' on |  \(', item_details)
@@ -122,12 +131,11 @@ def create_graphical_qep(raw_qep):
                 previous_indent_length = current_indent_length
                 cur_index += 1
                 continue
-    UniqueDotExporter(root_node,
-                      edgeattrfunc=lambda node, child: "dir=none").to_picture('graphical_qep.png')
-
-
-def edgetypefunc(node, child):
-    return '--'
+    try:
+        UniqueDotExporter(root_node,
+                          edgeattrfunc=lambda node, child: "dir=none").to_picture('graphical_qep.png')
+    except Exception as e:
+        print('Tree too large to be converted into png!')
 
 
 class BiDict(dict):
