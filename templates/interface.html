@@ -24,8 +24,9 @@
                 <input class="textArea" style="margin-left:1%;width:45%;" id="specifyQuery" name="specifyQuery" value={{ text }}>
                     <div class="annotate" id="annotate" name="annotate">
                         {% for i in range(4) %}
-                            <div class="rect" style="position:absolute;z-index: 1;top:'{{i}}'px">{{i}}</div>
-                            <big><big><big><big><big><big><div class="arrow-left" style="float:right;color:blue;z-index: 1;top:'{{i}}'px">&larr;</div></big></big></big></big></big></big>
+                            {% set x = (++i) * 100 + 100 %}
+                            <div class="rect" style="position:absolute;z-index: 1;top:{{x}}px;">{{x}}</div>
+                            <big><big><big><big><big><big><div class="arrow-left" style="float:right;color:blue;z-index: 1;top:{{x}}px;">&larr;</div></big></big></big></big></big></big>
                         {% endfor %}
                     </div>
                 </input>
@@ -36,6 +37,8 @@
         </div>
     </div>
 
+</body>
+
 <script type="text/javascript">
     function toggle_display(){
       el = document.querySelector('.annotate');
@@ -43,5 +46,4 @@
     }
 </script>
 
-</body>
 </html>
