@@ -8,38 +8,29 @@ pool = None
 
 
 def connect():
-    conn = None
     try:
         # testing connection on local databases, will need to try on remote database using ip address
         # for now, use your own postgresql password
         print('Connecting to database..')
         global pool
-        pool = psycopg2.pool.SimpleConnectionPool(1, 10, host="localhost",
+        pool = psycopg2.pool.SimpleConnectionPool(1, 10, host="192.168.1.150",
                                                   database="TPC-H",
                                                   user="postgres",
                                                   password="password")
         conn = pool.getconn()
         cur = conn.cursor()
+
         print('PostgreSQL database version:')
         cur.execute('SELECT version()')
-
         db_version = cur.fetchone()
         print(db_version)
-
-        # cur.execute('SELECT datname FROM pg_database')
-        # databases = cur.fetchall()
-        # print("Databases:", databases)
 
         return
 
         cur.close()
 
     except (Exception, psycopg2.DatabaseError) as error:
-        print(error)
-    finally:
-        if conn is not None:
-            conn.close()
-            print('Database connection closed.')
+        print('Login error:', error)
 
 
 def show_display():
@@ -56,25 +47,39 @@ def process_query():
                 "WHERE " \
                 "n.n_nationkey > 10 " \
                 "AND n.n_regionkey = r.r_regionkey " \
-                "AND s.S_NATIONKEY = n.n_nationkey " \
+                "AND s.s_nationkey = n.n_nationkey " \
                 "GROUP BY r.r_name " \
 
-    cur.execute(cur.mogrify('explain ' + sql_query))
-    raw_qep = cur.fetchall()
+    raw_qep = ''
+    try:
+        cur.execute(cur.mogrify('explain ' + sql_query))
+        raw_qep = cur.fetchall()
+    except (Exception, psycopg2.DatabaseError) as error:
+        print('Database Error:', error)
 
-    processed_qep = pre.process_qep(raw_qep)
-    annotations = anno.generate_annotations(sql_query, processed_qep)
-    print('Number of annotations:', len(annotations))
-    # interface.render_annotations(annotations)
+    if raw_qep != '':
+        processed_qep = pre.process_qep(raw_qep)
+        annotations = anno.generate_annotations(sql_query, processed_qep)
+        print('Number of annotations:', len(annotations))
+        # interface.render_annotations(annotations)
 
-    pre.create_graphical_qep(raw_qep)
-    # interface.render_graphical_qep()
+        pre.create_graphical_qep(raw_qep)
+        # interface.render_graphical_qep()
+
+
+def close_connection():
+    conn = pool.getconn()
+    if conn is not None:
+        conn.close()
+        print('Database connection closed.')
 
 
 def main():
     connect()
-    show_display()
-    process_query()
+    if pool is not None:
+        show_display()
+        process_query()
+        close_connection()
 
 
 main()

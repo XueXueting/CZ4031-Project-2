@@ -15,7 +15,6 @@ def process_qep(raw_qep):
     result_dict = {'Join': {}, 'Scan': BiDict({})}
     for i in range(len(raw_qep)):
         qep_item = raw_qep[i][0]
-        print(qep_item)
         split_item = qep_item.split('->  ')
         if i == 0:
             item_details = split_item[0]
@@ -60,7 +59,6 @@ def create_graphical_qep(raw_qep):
         if i == 0 or ('->' in item):
             intermediate_qep.append(item.split('->  '))
 
-    print(intermediate_qep)
     num_query_components = len(intermediate_qep)
     cur_index = 0
     root_node = None
