@@ -13,20 +13,35 @@
         <div class="panelContainer">
             <form method="POST">
 <!--                <input type="text" list="schemas" class="textArea" size="2" id="selectSchema" name="selectSchema">-->
-                    <select class="firstPanel" id="schemas" size="2">
+                    <select class="firstPanel" name="schemas" id="schemas" size="2">
                         {% for item in schema %}
                             <option>
-                                DB Schema: {{ item }}
+                                {{ item }}
                             </option>
                         {% endfor %}
                     </select>
 <!--                </input>-->
-                <input class="textArea" style="margin-left:1%;" id="specifyQuery" name="specifyQuery" value={{ text }}></input>
-                <input class="textArea" style="margin-left:32%;" id="visualizeQEP" name="visualizeQEP" value="visualize QEP..."></input>
+                <input class="textArea" style="margin-left:1%;width:45%;" id="specifyQuery" name="specifyQuery" value={{ text }}>
+                    <div class="annotate" id="annotate" name="annotate">
+                        {% for i in range(4) %}
+                            <div class="rect" style="position:absolute;z-index: 1;top:'{{i}}'px">{{i}}</div>
+                            <big><big><big><big><big><big><div class="arrow-left" style="float:right;color:blue;z-index: 1;top:'{{i}}'px">&larr;</div></big></big></big></big></big></big>
+                        {% endfor %}
+                    </div>
+                </input>
+                <input class="textArea" style="margin-left:63%;" id="visualizeQEP" name="visualizeQEP" value="visualize QEP..."></input>
                 <br><br>
-                <input class="btn" type="submit">
+                <input class="btn" type="submit" onclick="toggle_display()">
             </form>
         </div>
     </div>
+
+<script type="text/javascript">
+    function toggle_display(){
+      el = document.querySelector('.annotate');
+      el.style.visibility = 'visible'
+    }
+</script>
+
 </body>
 </html>
