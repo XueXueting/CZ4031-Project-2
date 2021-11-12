@@ -13,20 +13,30 @@
         <div class="panelContainer">
             <form method="POST">
 <!--                <input type="text" list="schemas" class="textArea" size="2" id="selectSchema" name="selectSchema">-->
-                    <select class="firstPanel" id="schemas" size="2">
+                    <select class="firstPanel" name="schemas" id="schemas" size="2">
                         {% for item in schema %}
                             <option>
-                                DB Schema: {{ item }}
+                                {{ item }}
                             </option>
                         {% endfor %}
                     </select>
 <!--                </input>-->
-                <input class="textArea" style="margin-left:1%;" id="specifyQuery" name="specifyQuery" value={{ text }}></input>
-                <input class="textArea" style="margin-left:32%;" id="visualizeQEP" name="visualizeQEP" value="visualize QEP..."></input>
+                <input type="text" class="textArea" rows = "5" cols = "60" style="margin-left:1%;width:45%;" id="specifyQuery" name="specifyQuery" value={{text}}>
+                    <div class="annotate" id="annotate" name="annotate">
+                        {% for i in range(numberofitem) %}
+                            {% set x = (++i) * 100 + 100 %}
+                            <div class="rect" style="position:absolute;z-index: 1;top:{{x}}px;">{{x}}</div>
+                            <big><big><big><big><big><big><div class="arrow-left" style="float:right;color:blue;z-index: 1;top:{{x}}px;">&larr;</div></big></big></big></big></big></big>
+                        {% endfor %}
+                    </div>
+                </input><br>
+                <input type="text" class="textArea" style="margin-left:63%;" id="visualizeQEP" name="visualizeQEP" value="visualize QEP..."></input>
                 <br><br>
-                <input class="btn" type="submit">
+                <input class="btn" type="submit" onclick="toggle_display()">
             </form>
         </div>
     </div>
+
 </body>
+
 </html>
