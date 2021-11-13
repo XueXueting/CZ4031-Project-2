@@ -37,19 +37,24 @@ def loadInterface():
         Lb1.insert(idx, val)
     Lb1.grid(row=2,column=1)
 
+    canvas = Canvas(root, width=600, height=400, borderwidth = 2, bg="white")
+    canvas.grid(row=2, column=3)
+
     #secondpanel
     LabelSecond = Label(root, font=("Arial", 25), text="Input Query")
     LabelSecond.grid(row=1, column=3)
-    e = Text(root, width=75, borderwidth=2, height=25, bg="white" )
-    e.grid(row=2,column=3)
+    e = Text(canvas, width = 45, borderwidth = 2, height = 25, bg="black")
+    canvas.create_window(0,0,window=e, anchor="nw")
+    # width = 75, borderwidth = 2, height = 25,
+    # e.grid(row=2,column=3)
     # e.insert(0,"Enter SQL query:")
 
     #Put a empty label between for gap between panel 2 and 3
-    spacer1 = Label(root, text="          ")
+    spacer1 = Label(root, text="       ")
     spacer1.grid(row=2, column=0)
-    spacer2 = Label(root, text="          ")
+    spacer2 = Label(root, text="       ")
     spacer2.grid(row=2, column=2)
-    spacer3 = Label(root, text="          ")
+    spacer3 = Label(root, text="       ")
     spacer3.grid(row=2, column=4)
 
 
@@ -62,15 +67,6 @@ def loadInterface():
     # thirdpanel.grid(row=0,column=2)
 
     def createAnnotation(numOfAnnotation, secondLabel):
-        ##delete previous texts
-        # e.delete('1.0', END)
-        canvas = Canvas(e, width=600, height=400)
-        canvas.grid(row=1, column=1)
-        queryLabel = Label(canvas, text=secondLabel)
-        print(queryLabel)
-
-        canvas.create_text(0, 0, text=secondLabel, fill="black")
-
         for i in range(numOfAnnotation):
             ##gets item_index for location (not yet implemented)
             canvas.create_line(500, (i*50)+20, 300, (i*60)+15, arrow=LAST)
@@ -78,6 +74,7 @@ def loadInterface():
             buttonTXT = canvas.create_text(500, (i*50)+25, text="Annotations...."+str(1+i))
             canvas.tag_bind(buttonBG, "<Button-1>", btnClick)  ## when the square is clicked runs function "clicked".
             canvas.tag_bind(buttonTXT, "<Button-1>", btnClick)  ## same, but for the text.
+        # canvas.update()
 
     def loadImage():
         path = "graphical_qep.png"
