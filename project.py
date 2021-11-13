@@ -3,9 +3,6 @@ import psycopg2.pool
 import preprocessing as pre
 import annotation as anno
 import interface
-from flask import Flask, request, render_template
-
-app = Flask(__name__)
 
 pool = None
 
@@ -41,8 +38,9 @@ def show_display():
     cur.execute('SELECT schema_name FROM information_schema.schemata')
     raw_schemas = cur.fetchall()
     processed_schemas = pre.process_schemas(raw_schemas)
-    print("test")
-    print(processed_schemas)
+    # interface.loadInterface(processed_schemas)
+    interface.loadInterface()
+
 
 
 def process_query():
@@ -80,33 +78,14 @@ def close_connection():
 
 
 def main():
+    #temp put it here so it can show without connect
+    interface.loadInterface()
     connect()
     if pool is not None:
-        processed_schemas = show_display()
+        show_display()
         process_query()
         close_connection()
-        loadInterface()
-
-@app.route('/', methods=['GET','POST'])
-def loadInterface():
-    cur = pool.getconn().cursor()
-    cur.execute('SELECT schema_name FROM information_schema.schemata')
-    raw_schemas = cur.fetchall()
-    processed_schemas = pre.process_schemas(raw_schemas)
-    schema = processed_schemas
-    numberofitem = 0
-    if request.method == 'POST':
-        getSelectedSchema = request.form['schemas']
-        # get  it from randy's list
-        ## expecting a list, count the list and store it in numberOfItem...
-        # create a function in interface.py to retrieve this value instead...
-        numberofitem = 4;
-        return render_template("interface.html", text=getSelectedSchema, schema=schema, numberofitem=numberofitem)
-    else:
-        return render_template('interface.html', schema=schema, numberofitem=numberofitem)
+        # interface.loadInterface()
 
 
-
-# main()
-if __name__ == '__main__':
-   app.run(host = '0.0.0.0', port = '8000', debug = True)
+main()
