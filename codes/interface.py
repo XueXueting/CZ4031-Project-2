@@ -1,4 +1,5 @@
 from tkinter import *
+from tkinter import font as tkFont
 from PIL import ImageTk, Image
 import os
 import project
@@ -17,19 +18,19 @@ def loadInterface(processed_schemas):
     global img, root, message_label, listbox_schemas, input_text, canvas, submit_button
     root = Root()
 
-
     # getting screen width and height of display
     width = root.winfo_screenwidth()
     height = root.winfo_screenheight()
+
     # setting tkinter window size
     root.geometry("%dx%d" % (width, height))
-    root.title("Query Annotation")
+    root.title("Query Annotator")
 
-    label_head = Label(root, font=("Arial", 25), text="Query Annotation")
+    label_head = Label(root, font=("Helvetica", 25), text="Query Annotator")
     label_head.grid(row=0, column=3, padx=(250, 10), pady=(20, 50))
 
-    #firstpanel
-    label_first = Label(root, font=("Arial", 20), text="Schemas")
+    # first panel
+    label_first = Label(root, font=("Helvetica", 20), text="Schemas")
     label_first.grid(row=1,column=1)
     listbox_schemas = Listbox(root, height=25, bg="white")
 
@@ -40,16 +41,12 @@ def loadInterface(processed_schemas):
     canvas = Canvas(root, width=600, height=400, borderwidth=2, bg="white")
     canvas.grid(row=2, column=3)
 
-    #secondpanel
-    label_second = Label(root, font=("Arial", 20), text="Input Query")
+    # second panel
+    label_second = Label(root, font=("Helvetica", 20), text="Input Query")
     label_second.grid(row=1, column=3)
-    input_text = Text(canvas, width=45, borderwidth=2, height=25, font=('Arial', 10))
+    input_text = Text(canvas, width=45, borderwidth=2, height=25, font=('Helvetica', 10))
     canvas.create_window(0, 0, window=input_text, anchor="nw", tag='input_text')
-    # width = 75, borderwidth = 2, height = 25,
-    # input_text.grid(row=2,column=3)
-    # input_text.insert(0,"Enter SQL query:")
 
-    #Put a empty label between for gap between panel 2 and 3
     spacer1 = Label(root, text="       ")
     spacer1.grid(row=2, column=0)
     spacer2 = Label(root, text="       ")
@@ -57,22 +54,20 @@ def loadInterface(processed_schemas):
     spacer3 = Label(root, text="       ")
     spacer3.grid(row=2, column=4)
 
-
-    #thirdpanel
+    # third panel
     # canvas.create_rectangle(5, 50, 100, 200, fill="blue", outline="black", state='disabled')
-    label_third = Label(root, font=("Arial", 20), text="Query Execution Plan")
+    label_third = Label(root, font=("Helvetica", 20), text="Query Execution Plan")
     label_third.grid(row=1, column=5)
     rectangle_1 = Label(root, text="", bg="white", fg="black", width=55, height=25)
     rectangle_1.grid(ipadx=5, ipady=5, row=2, column=5)
-    # thirdpanel.grid(row=0,column=2)
 
     # bottom row
-    message_label = Label(root, text='Please select the schema and enter your query.')
+    message_label = Label(root, text='Please select the schema and enter your query.', font=('Helvetica', 16))
     message_label.grid(row=3, column=3)
-    submit_button = Button(root, text="Submit!", command=lambda: btnClick())
+    submit_button = Button(root, text="Submit!", command=lambda: btnClick(), width=10, height=1)
     submit_button.grid(row=4, column=3)
-    clear_button = Button(root, text="Clear", command=lambda: btnClear())
-    clear_button.grid(row=4,column=3, padx=(100, 200))
+    helvetica14 = tkFont.Font(family='Helvetica', size=14)
+    submit_button['font'] = helvetica14
 
     root.mainloop()
 
@@ -114,31 +109,11 @@ def btnClick():
     else:
         canvas.delete('annotations')
         submit_button.config(text='Annotate!')
-        input_text = Text(canvas, width=45, borderwidth=2, height=25, font=('Arial', 10))
+        input_text = Text(canvas, width=45, borderwidth=2, height=25, font=('Helvetica', 10))
         canvas.create_window(0, 0, window=input_text, anchor="nw", tag='input_text')
         message_label.config(text='Please enter another query.')
         submit_button_pressed = not submit_button_pressed
         removeImage()
-
-
-
-    ## pass in a list of annotation - in integer
-    numOfAnnotation = 4;
-    # panel = Label(root, image=img)
-    # panel.pack(side="bottom", fill="both", expand="yes")
-
-
-#restart program..
-def btnClear():
-    """Restarts the current program.
-        Note: this function does not return. Any cleanup action (like
-        saving data) must be done before calling this function."""
-    python = sys.executable
-    os.execl(python, python, *sys.argv)
-    # canvas.delete(buttonBG)
-    # root.destroy()
-    # root = Root()
-    # root.mainloop()
 
 
 def create_annotation(annotations):
@@ -161,7 +136,7 @@ def display_query_success(sql_query):
     global submit_button_pressed
     loadImage()
     canvas.delete('input_text')
-    canvas.create_text(5, 5, text=sql_query, anchor='nw', font=('Arial', 10), tag='annotations', width=325)
+    canvas.create_text(5, 5, text=sql_query, anchor='nw', font=('Helvetica', 10), tag='annotations', width=325)
     submit_button.config(text='New Query')
     message_label.config(text='Query Annotated!')
     submit_button_pressed = not submit_button_pressed
