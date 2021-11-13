@@ -3,7 +3,7 @@ import psycopg2.pool
 import preprocessing as pre
 import annotation as anno
 import interface
-import types
+from configparser import ConfigParser
 
 pool = None
 
@@ -14,10 +14,9 @@ def connect():
         # for now, use your own postgresql password
         print('Connecting to database..')
         global pool
-        pool = psycopg2.pool.SimpleConnectionPool(1, 10, host="192.168.1.150",
-                                                  database="TPC-H",
-                                                  user="postgres",
-                                                  password="password")
+        params = config()
+        pool = psycopg2.pool.SimpleConnectionPool(**params)
+
         conn = pool.getconn()
         cur = conn.cursor()
 
@@ -30,6 +29,7 @@ def connect():
 
     except (Exception, psycopg2.DatabaseError) as error:
         print('Login error:', error)
+        print('Please enter valid authentication details in the database.ini file.')
 
 
 def show_display():
@@ -44,32 +44,23 @@ def show_display():
 def process_query(selected_schema, sql_query):
     schema_option_string = '-c search_path=dbo,' + selected_schema
     global pool
-    pool = psycopg2.pool.SimpleConnectionPool(1, 10, host="192.168.1.150",
-                                              database="TPC-H",
-                                              user="postgres",
-                                              password="password",
-                                              options=schema_option_string)
+    params = config()
+    pool = psycopg2.pool.SimpleConnectionPool(options=schema_option_string, **params)
     cur = pool.getconn().cursor()
-    # sql_query = "SELECT * " \
-    #             "FROM region as r, nation as n, supplier as s " \
-    #             "WHERE " \
-    #             "n.n_regionkey = r.r_regionkey " \
-    #             "AND s.s_nationkey = n.n_nationkey "
-
     raw_qep = ''
     try:
         cur.execute(cur.mogrify('explain ' + sql_query))
         raw_qep = cur.fetchall()
     except (Exception, psycopg2.DatabaseError) as error:
         print('Database Error:', error)
+        interface.display_message('Invalid query. Please enter a valid query for this schema!')
 
     if raw_qep != '':
         processed_qep = pre.process_qep(raw_qep)
         annotations = anno.generate_annotations(sql_query, processed_qep)
         interface.create_annotation(annotations)
-
         pre.create_graphical_qep(raw_qep)
-        # interface.render_graphical_qep()
+        interface.display_query_success(sql_query)
 
 
 def close_connection():
@@ -77,6 +68,32 @@ def close_connection():
     if conn is not None:
         conn.close()
         print('Database connection closed.')
+
+
+def config(filename='database.ini', section='postgresql'):
+    # create a parser
+    parser = ConfigParser()
+    # read config file
+    parser.read(filename)
+
+    # get section, default to postgresql
+    db = {}
+    if parser.has_section(section):
+        params = parser.items(section)
+        for param in params:
+            db[param[0]] = param[1]
+    else:
+        raise Exception('Section {0} not found in the {1} file'.format(section, filename))
+
+    return db
+
+
+def set_schema_config(selected_schema):
+    parser = ConfigParser()
+    schema_option_string = '-c search_path=dbo,' + selected_schema
+    parser.set('postgresql', 'options', schema_option_string)
+    with open('database.ini', 'wb') as configfile:
+        parser.write(configfile)
 
 
 def run():

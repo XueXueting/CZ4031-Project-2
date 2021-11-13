@@ -2,6 +2,7 @@ import re
 import graphviz
 from anytree import Node, RenderTree
 from anytree.exporter import UniqueDotExporter
+import interface
 
 
 def process_schemas(raw_schemas):
@@ -134,6 +135,7 @@ def create_graphical_qep(raw_qep):
                           edgeattrfunc=lambda node, child: "dir=none").to_picture('graphical_qep.png')
     except Exception as e:
         print('Tree too large to be converted into png!')
+        interface.display_message('Tree too large to be converted into png!')
 
 
 class BiDict(dict):

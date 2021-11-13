@@ -3,6 +3,8 @@ from PIL import ImageTk, Image
 import os
 import project
 
+submit_button_pressed = False
+
 
 def loadInterface(processed_schemas):
     class Root(Tk):
@@ -12,7 +14,7 @@ def loadInterface(processed_schemas):
             self.title("Python Tkinter")
             # self.minsize(500, 400)
 
-    global img, root, message_label, listbox_schemas, input_text, canvas
+    global img, root, message_label, listbox_schemas, input_text, canvas, submit_button
     root = Root()
 
 
@@ -41,8 +43,8 @@ def loadInterface(processed_schemas):
     #secondpanel
     label_second = Label(root, font=("Arial", 20), text="Input Query")
     label_second.grid(row=1, column=3)
-    input_text = Text(canvas, width=45, borderwidth=2, height=25)
-    canvas.create_window(0, 0, window=input_text, anchor="nw")
+    input_text = Text(canvas, width=45, borderwidth=2, height=25, font=('Arial', 10))
+    canvas.create_window(0, 0, window=input_text, anchor="nw", tag='input_text')
     # width = 75, borderwidth = 2, height = 25,
     # input_text.grid(row=2,column=3)
     # input_text.insert(0,"Enter SQL query:")
@@ -60,51 +62,65 @@ def loadInterface(processed_schemas):
     # canvas.create_rectangle(5, 50, 100, 200, fill="blue", outline="black", state='disabled')
     label_third = Label(root, font=("Arial", 20), text="Query Execution Plan")
     label_third.grid(row=1, column=5)
-    rectangle_1 = Label(root, text="For QEP Visualisation...", bg="white", fg="black", width=55, height=25)
+    rectangle_1 = Label(root, text="", bg="white", fg="black", width=55, height=25)
     rectangle_1.grid(ipadx=5, ipady=5, row=2, column=5)
     # thirdpanel.grid(row=0,column=2)
 
     # bottom row
-    message_label = Label(root, text='Welcome to the query annotator!')
+    message_label = Label(root, text='Please select the schema and enter your query.')
     message_label.grid(row=3, column=3)
     submit_button = Button(root, text="Submit!", command=lambda: btnClick())
-    submit_button.grid(row=4,column=3)
+    submit_button.grid(row=4, column=3)
     clear_button = Button(root, text="Clear", command=lambda: btnClear())
     clear_button.grid(row=4,column=3, padx=(100, 200))
-
 
     root.mainloop()
 
 
 def loadImage():
+    global panel
     path = "graphical_qep.png"
     img = ImageTk.PhotoImage(Image.open(path).resize((400, 400), Image.ANTIALIAS))
     # resized = img.resize((400, 400), Image.ANTIALIAS)
-    panel = Label(root, image=img)
+    panel = Label(root, image=img, bg='white')
     panel.photo = img
     panel.grid(ipadx=5, ipady=5, row=2,column=5)
 
 
+def removeImage():
+    global panel
+    panel.config(image='')
+
+
 def btnClick():
-    ## get inputs and selected items
+    global submit_button_pressed, input_text
+    if not submit_button_pressed:
+        ## get inputs and selected items
 
-    # add panel item here - to be removed...
-    sql_query = input_text.get("1.0",'end-1c')
-    selected_schema = None
+        # add panel item here - to be removed...
+        sql_query = input_text.get("1.0",'end-1c')
+        selected_schema = None
 
-    for i in listbox_schemas.curselection():
-        print(listbox_schemas.get(i))
-        selected_schema = listbox_schemas.get(i)
+        for i in listbox_schemas.curselection():
+            print(listbox_schemas.get(i))
+            selected_schema = listbox_schemas.get(i)
 
-    if selected_schema is None:
-        message_label.config(text='Please select a schema!')
+        if selected_schema is None:
+            message_label.config(text='Please select a schema!')
+        else:
+            print('first:', selected_schema)
+            print(sql_query)
+            project.process_query(selected_schema, sql_query)
     else:
-        print('first:', selected_schema)
-        print(sql_query)
-        project.process_query(selected_schema, sql_query)
+        canvas.delete('annotations')
+        submit_button.config(text='Annotate!')
+        input_text = Text(canvas, width=45, borderwidth=2, height=25, font=('Arial', 10))
+        canvas.create_window(0, 0, window=input_text, anchor="nw", tag='input_text')
+        message_label.config(text='Please enter another query.')
+        submit_button_pressed = not submit_button_pressed
+        removeImage()
 
-    #get connection and run output - file should be stored for retrieval.. (call project.py to run)
-    loadImage()
+
 
     ## pass in a list of annotation - in integer
     numOfAnnotation = 4;
@@ -124,12 +140,28 @@ def btnClear():
     # root = Root()
     # root.mainloop()
 
+
 def create_annotation(annotations):
     for i in range(len(annotations)):
         ##gets item_index for location (not yet implemented)
-        canvas.create_line(500, (i*50)+20, 300, (i*60)+15, arrow=LAST)
-        buttonBG = canvas.create_rectangle(400, (i*50)+10, 600, (i*50)+50, fill="white", outline="blue")
-        buttonTXT = canvas.create_text(500, (i*50)+25, text=annotations[i].construct_annotation_string())
+        canvas.create_line(500, (i*50)+20, 300, (i*60)+15, arrow=LAST, tag='annotations')
+        buttonBG = canvas.create_rectangle(400, (i*50)+10, 600, (i*50)+50, fill="white", outline="blue", tag='annotations')
+        buttonTXT = canvas.create_text(500, (i*50)+25, text=annotations[i].construct_annotation_string(), tag='annotations')
         canvas.tag_bind(buttonBG, "<Button-1>", btnClick)  ## when the square is clicked runs function "clicked".
         canvas.tag_bind(buttonTXT, "<Button-1>", btnClick)  ## same, but for the text.
     # canvas.update()
+
+
+def display_message(message):
+    message_label.config(text=message)
+
+
+# displays graphical QEP and changes button text
+def display_query_success(sql_query):
+    global submit_button_pressed
+    loadImage()
+    canvas.delete('input_text')
+    canvas.create_text(5, 5, text=sql_query, anchor='nw', font=('Arial', 10), tag='annotations', width=325)
+    submit_button.config(text='New Query')
+    message_label.config(text='Query Annotated!')
+    submit_button_pressed = not submit_button_pressed
