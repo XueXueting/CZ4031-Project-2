@@ -27,8 +27,6 @@ def connect():
 
         return
 
-        cur.close()
-
     except (Exception, psycopg2.DatabaseError) as error:
         print('Login error:', error)
 
@@ -38,17 +36,24 @@ def show_display():
     cur.execute('SELECT schema_name FROM information_schema.schemata')
     raw_schemas = cur.fetchall()
     processed_schemas = pre.process_schemas(raw_schemas)
+    interface.loadInterface(processed_schemas)
+    # interface.loadInterface(processed_schemas)
 
 
-def process_query():
+def process_query(selected_schema, sql_query):
+    schema_option_string = '-c search_path=dbo,' + selected_schema
+    global pool
+    pool = psycopg2.pool.SimpleConnectionPool(1, 10, host="192.168.1.150",
+                                              database="TPC-H",
+                                              user="postgres",
+                                              password="password",
+                                              options=schema_option_string)
     cur = pool.getconn().cursor()
-    sql_query = "SELECT sum(s_acctbal) " \
-                "FROM REGION as R, region as re, nation as n, supplier as s " \
-                "WHERE " \
-                "n.n_nationkey > 10 " \
-                "AND n.n_regionkey = r.r_regionkey " \
-                "AND s.s_nationkey = n.n_nationkey " \
-                "GROUP BY r.r_name " \
+    # sql_query = "SELECT * " \
+    #             "FROM region as r, nation as n, supplier as s " \
+    #             "WHERE " \
+    #             "n.n_regionkey = r.r_regionkey " \
+    #             "AND s.s_nationkey = n.n_nationkey "
 
     raw_qep = ''
     try:
@@ -60,7 +65,6 @@ def process_query():
     if raw_qep != '':
         processed_qep = pre.process_qep(raw_qep)
         annotations = anno.generate_annotations(sql_query, processed_qep)
-        print('Number of annotations:', len(annotations))
         # interface.render_annotations(annotations)
 
         pre.create_graphical_qep(raw_qep)
@@ -74,12 +78,13 @@ def close_connection():
         print('Database connection closed.')
 
 
-def main():
+def run():
     connect()
     if pool is not None:
         show_display()
-        process_query()
         close_connection()
 
 
-main()
+if __name__ == '__main__':
+    run()
+
