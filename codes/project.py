@@ -3,6 +3,7 @@ import psycopg2.pool
 import preprocessing as pre
 import annotation as anno
 import interface
+import types
 
 pool = None
 
@@ -65,7 +66,7 @@ def process_query(selected_schema, sql_query):
     if raw_qep != '':
         processed_qep = pre.process_qep(raw_qep)
         annotations = anno.generate_annotations(sql_query, processed_qep)
-        # interface.render_annotations(annotations)
+        interface.create_annotation(annotations)
 
         pre.create_graphical_qep(raw_qep)
         # interface.render_graphical_qep()
