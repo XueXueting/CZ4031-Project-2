@@ -119,21 +119,20 @@ def btnClick():
 
 def create_annotation(sql_query, annotations):
     term_indexes = [annotation.term_index for annotation in annotations]
-    print(term_indexes)
-
     x_offset = 6
     y_offset = 10
     current_index = 0
     annotation_arrow_pos_list = []
+    
+    # process the query word by word to identify positions of terms of interest
     for line in sql_query.split('\n'):
         for word in line.split():
-            print(word, current_index)
             text_id = canvas.create_text(x_offset, y_offset, text=word, anchor=W, font=('Helvetica', 10), tag='annotations')
             bbox = canvas.bbox(text_id)
             word_length = bbox[2] - bbox[0]
             word_height = bbox[3] - bbox[1]
             if current_index in term_indexes:
-                print(word)
+                # add arrow position to list for insertion later
                 annotation_arrow_pos_list.append([x_offset + word_length/2, y_offset])
             x_offset += bbox[2] - bbox[0] + 5
             if x_offset >= 325:
@@ -144,6 +143,7 @@ def create_annotation(sql_query, annotations):
             x_offset = 6
             y_offset = y_offset + 16
 
+    # render annotations on canvas
     txtbox_start_pos = 10
     for i in range(len(annotations)):
         annotation_txt = annotations[i].construct_annotation_string()
@@ -163,15 +163,16 @@ def create_annotation(sql_query, annotations):
 def display_message(message):
     message_label.config(text=message)
 
+
 def callback(event, text_id):
     print(event.widget.bbox(text_id))
+
 
 # displays graphical QEP and changes button text
 def display_query_success():
     global submit_button_pressed
     loadImage()
     canvas.delete('input_text')
-    # canvas.create_text(5, 5, text=sql_query, anchor='nw', font=('Helvetica', 10), tag='annotations', width=325)
     submit_button.config(text='New Query')
     message_label.config(text='Query Annotated!')
     submit_button_pressed = not submit_button_pressed
