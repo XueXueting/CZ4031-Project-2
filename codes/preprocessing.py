@@ -64,8 +64,6 @@ def create_graphical_qep(raw_qep):
     cur_index = 0
     root_node = None
     previous_node = None
-    current_component_name = ""
-    next_component_name = ""
     previous_indent_length = 0
     while cur_index < num_query_components:
         if cur_index == 0:

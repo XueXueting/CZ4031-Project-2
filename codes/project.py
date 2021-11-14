@@ -10,8 +10,6 @@ pool = None
 
 def connect():
     try:
-        # testing connection on local databases, will need to try on remote database using ip address
-        # for now, use your own postgresql password
         print('Connecting to database..')
         global pool
         params = config()
@@ -38,7 +36,6 @@ def show_display():
     raw_schemas = cur.fetchall()
     processed_schemas = pre.process_schemas(raw_schemas)
     interface.loadInterface(processed_schemas)
-    # interface.loadInterface(processed_schemas)
 
 
 def process_query(selected_schema, sql_query):
