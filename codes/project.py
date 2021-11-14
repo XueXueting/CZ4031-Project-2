@@ -35,6 +35,8 @@ def show_display():
     cur.execute('SELECT schema_name FROM information_schema.schemata')
     raw_schemas = cur.fetchall()
     processed_schemas = pre.process_schemas(raw_schemas)
+    if 'public' in processed_schemas:
+        processed_schemas.insert(0, processed_schemas.pop(processed_schemas.index('public')))
     interface.loadInterface(processed_schemas)
 
 
@@ -55,9 +57,9 @@ def process_query(selected_schema, sql_query):
     if raw_qep != '':
         processed_qep = pre.process_qep(raw_qep)
         annotations = anno.generate_annotations(sql_query, processed_qep)
-        interface.create_annotation(annotations)
+        interface.create_annotation(sql_query, annotations)
         pre.create_graphical_qep(raw_qep)
-        interface.display_query_success(sql_query)
+        interface.display_query_success()
 
 
 def close_connection():

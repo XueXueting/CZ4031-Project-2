@@ -1,4 +1,4 @@
-import string
+from string import punctuation
 
 
 class Annotation:
@@ -54,8 +54,8 @@ def generate_annotations(sql_query, processed_qep):
             join_flag = 0
         if scan_flag:
             # match term with respective table in processed_qep
-            scan_algorithm = [val for key, val in processed_qep['Scan'].items() if term.lower() in key]
-            scan_keys = [key for key, val in processed_qep['Scan'].items() if term.lower() in key]
+            scan_algorithm = [val for key, val in processed_qep['Scan'].items() if term.strip(punctuation).lower() in key and len(term) > 1]
+            scan_keys = [key for key, val in processed_qep['Scan'].items() if term.strip(punctuation).lower() in key and len(term) > 1]
             if len(scan_algorithm) == 0:
                 continue
             else:

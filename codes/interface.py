@@ -3,6 +3,7 @@ from tkinter import font as tkFont
 from PIL import ImageTk, Image
 import os
 import project
+import time
 
 submit_button_pressed = False
 
@@ -64,7 +65,7 @@ def loadInterface(processed_schemas):
     # bottom row
     message_label = Label(root, text='Please select the schema and enter your query.', font=('Helvetica', 16))
     message_label.grid(row=3, column=3)
-    submit_button = Button(root, text="Submit!", command=lambda: btnClick(), width=10, height=1)
+    submit_button = Button(root, text="Annotate!", command=lambda: btnClick(), width=10, height=1)
     submit_button.grid(row=4, column=3)
     helvetica14 = tkFont.Font(family='Helvetica', size=14)
     submit_button['font'] = helvetica14
@@ -116,27 +117,61 @@ def btnClick():
         removeImage()
 
 
-def create_annotation(annotations):
+def create_annotation(sql_query, annotations):
+    term_indexes = [annotation.term_index for annotation in annotations]
+    print(term_indexes)
+
+    x_offset = 6
+    y_offset = 10
+    current_index = 0
+    annotation_arrow_pos_list = []
+    for line in sql_query.split('\n'):
+        for word in line.split():
+            print(word, current_index)
+            text_id = canvas.create_text(x_offset, y_offset, text=word, anchor=W, font=('Helvetica', 10), tag='annotations')
+            bbox = canvas.bbox(text_id)
+            word_length = bbox[2] - bbox[0]
+            word_height = bbox[3] - bbox[1]
+            if current_index in term_indexes:
+                print(word)
+                annotation_arrow_pos_list.append([x_offset + word_length/2, y_offset])
+            x_offset += bbox[2] - bbox[0] + 5
+            if x_offset >= 325:
+                x_offset = 6
+                y_offset += word_height
+            current_index += 1
+        if x_offset != 6:
+            x_offset = 6
+            y_offset = y_offset + 16
+
+    txtbox_start_pos = 10
     for i in range(len(annotations)):
-        ##gets item_index for location (not yet implemented)
-        canvas.create_line(500, (i*50)+20, 300, (i*60)+15, arrow=LAST, tag='annotations')
-        buttonBG = canvas.create_rectangle(400, (i*50)+10, 600, (i*50)+50, fill="white", outline="blue", tag='annotations')
-        buttonTXT = canvas.create_text(500, (i*50)+25, text=annotations[i].construct_annotation_string(), tag='annotations')
-        canvas.tag_bind(buttonBG, "<Button-1>", btnClick)  ## when the square is clicked runs function "clicked".
-        canvas.tag_bind(buttonTXT, "<Button-1>", btnClick)  ## same, but for the text.
-    # canvas.update()
+        annotation_txt = annotations[i].construct_annotation_string()
+        annotation_arrow_pos_x = annotation_arrow_pos_list[0][0]
+        annotation_arrow_pos_y = annotation_arrow_pos_list[0][1]
+        ## for position of rectangle and text
+        nlines = annotation_txt.count('\n')
+        txtbox_end_pos = (nlines*30)+txtbox_start_pos
+        ## creating annotations
+        canvas.create_line(350, txtbox_start_pos+20, annotation_arrow_pos_x, annotation_arrow_pos_y, arrow=LAST, tag='annotations')
+        canvas.create_rectangle(350, txtbox_start_pos, 600, txtbox_end_pos, fill="white", outline="blue", tag='annotations')
+        canvas.create_text(480, txtbox_start_pos+30, text=annotation_txt,font=("Helvetica", 9), justify="center", tag='annotations')
+        txtbox_start_pos = txtbox_end_pos + 20
+        annotation_arrow_pos_list.pop(0)
 
 
 def display_message(message):
     message_label.config(text=message)
 
+def callback(event, text_id):
+    print(event.widget.bbox(text_id))
 
 # displays graphical QEP and changes button text
-def display_query_success(sql_query):
+def display_query_success():
     global submit_button_pressed
     loadImage()
     canvas.delete('input_text')
-    canvas.create_text(5, 5, text=sql_query, anchor='nw', font=('Helvetica', 10), tag='annotations', width=325)
+    # canvas.create_text(5, 5, text=sql_query, anchor='nw', font=('Helvetica', 10), tag='annotations', width=325)
     submit_button.config(text='New Query')
     message_label.config(text='Query Annotated!')
     submit_button_pressed = not submit_button_pressed
