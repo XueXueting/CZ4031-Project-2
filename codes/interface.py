@@ -38,6 +38,7 @@ def loadInterface(processed_schemas):
     for idx, val in enumerate(processed_schemas):
         listbox_schemas.insert(idx, val)
     listbox_schemas.grid(row=2,column=1)
+    listbox_schemas.select_set(0)
 
     canvas = Canvas(root, width=600, height=400, borderwidth=2, bg="white")
     canvas.grid(row=2, column=3)
@@ -123,7 +124,7 @@ def create_annotation(sql_query, annotations):
     y_offset = 10
     current_index = 0
     annotation_arrow_pos_list = []
-    
+
     # process the query word by word to identify positions of terms of interest
     for line in sql_query.split('\n'):
         for word in line.split():
